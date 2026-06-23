@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDF 轉 TXT 工具</title>
-    <!-- 使用 PDF.js 解析 PDF -->
+    <title>PDF 轉 TXT 批量工具</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
     <style>
         * {
@@ -16,30 +15,27 @@
             font-family: 'Segoe UI', '微軟正黑體', sans-serif;
             background: linear-gradient(145deg, #f5f7fa 0%, #e9edf2 100%);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
+            padding: 30px 20px;
         }
         .container {
+            max-width: 1100px;
+            margin: 0 auto;
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(12px);
             border-radius: 32px;
-            padding: 40px 45px;
-            max-width: 720px;
-            width: 100%;
+            padding: 35px 40px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: 0.3s;
         }
         h1 {
-            font-size: 28px;
+            font-size: 30px;
             font-weight: 700;
             color: #1a2634;
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
         }
         h1 small {
             font-size: 16px;
@@ -52,20 +48,19 @@
             font-size: 15px;
             border-left: 4px solid #3b82f6;
             padding-left: 16px;
-            margin-bottom: 28px;
-            line-height: 1.5;
+            margin-bottom: 25px;
+            line-height: 1.6;
             background: rgba(59, 130, 246, 0.06);
             border-radius: 0 8px 8px 0;
         }
         .drop-zone {
             border: 2.5px dashed #b9c7d9;
             border-radius: 20px;
-            padding: 50px 20px;
+            padding: 45px 20px;
             text-align: center;
             cursor: pointer;
             transition: 0.25s;
             background: rgba(255, 255, 255, 0.4);
-            position: relative;
         }
         .drop-zone:hover {
             border-color: #3b82f6;
@@ -77,9 +72,9 @@
             transform: scale(1.01);
         }
         .drop-zone .icon {
-            font-size: 56px;
+            font-size: 52px;
             display: block;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .drop-zone p {
             color: #2c3e50;
@@ -89,59 +84,123 @@
         .drop-zone .hint {
             color: #6b7b8b;
             font-size: 14px;
-            margin-top: 8px;
+            margin-top: 6px;
         }
         #fileInput {
             display: none;
         }
-        .file-info {
-            margin-top: 18px;
-            padding: 14px 18px;
-            background: #f0f4fe;
-            border-radius: 14px;
+
+        /* 檔案列表 */
+        .file-list {
+            margin-top: 20px;
             display: none;
-            align-items: center;
-            gap: 12px;
-            font-size: 15px;
-            color: #1e293b;
-            border: 1px solid #dbe7f5;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #f8fafc;
         }
-        .file-info.show {
+        .file-list.show {
+            display: block;
+        }
+        .file-item {
             display: flex;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid #eef2f6;
+            gap: 12px;
+            transition: 0.15s;
         }
-        .file-info .name {
-            font-weight: 600;
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        .file-item:hover {
+            background: #f1f5f9;
+        }
+        .file-item .status {
+            font-size: 20px;
+            min-width: 32px;
+            text-align: center;
+        }
+        .file-item .info {
             flex: 1;
+            min-width: 0;
+        }
+        .file-item .name {
+            font-weight: 600;
+            color: #0f172a;
             word-break: break-all;
+            font-size: 14px;
         }
-        .file-info .size {
-            color: #4b5b6b;
-            font-size: 13px;
-            background: #e2eaf5;
-            padding: 2px 12px;
-            border-radius: 30px;
+        .file-item .meta {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 2px;
         }
+        .file-item .actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .file-item .actions .btn-sm {
+            padding: 4px 14px;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .file-item .actions .btn-sm:hover:not(:disabled) {
+            background: #cbd5e1;
+        }
+        .file-item .actions .btn-sm.success {
+            background: #059669;
+            color: white;
+        }
+        .file-item .actions .btn-sm.success:hover {
+            background: #047857;
+        }
+        .file-item .actions .btn-sm:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .file-item .progress-mini {
+            width: 80px;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .file-item .progress-mini .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #2563eb);
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+
+        /* 操作按鈕 */
         .action-bar {
             display: flex;
             gap: 14px;
-            margin-top: 24px;
+            margin-top: 20px;
             flex-wrap: wrap;
         }
         .btn {
-            padding: 14px 28px;
+            padding: 12px 28px;
             border: none;
             border-radius: 40px;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
             transition: 0.2s;
             display: inline-flex;
             align-items: center;
-            justify-content: center;
             gap: 8px;
-            flex: 1 1 auto;
-            background: #eef2f6;
-            color: #1e293b;
         }
         .btn-primary {
             background: #1a2634;
@@ -151,7 +210,6 @@
         .btn-primary:hover:not(:disabled) {
             background: #2c3e50;
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(26, 38, 52, 0.3);
         }
         .btn-primary:disabled {
             opacity: 0.4;
@@ -167,74 +225,29 @@
             background: #047857;
             transform: translateY(-2px);
         }
+        .btn-success:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
         .btn-outline {
             background: transparent;
             border: 2px solid #cbd5e1;
+            color: #1e293b;
         }
         .btn-outline:hover {
             background: #f1f5f9;
             border-color: #94a3b8;
         }
-        .progress-area {
-            margin-top: 22px;
-            display: none;
+        .btn-danger-outline {
+            background: transparent;
+            border: 2px solid #fca5a5;
+            color: #991b1b;
         }
-        .progress-area.show {
-            display: block;
+        .btn-danger-outline:hover {
+            background: #fef2f2;
+            border-color: #ef4444;
         }
-        .progress-bar-bg {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .progress-bar-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #3b82f6, #2563eb);
-            border-radius: 10px;
-            transition: width 0.3s ease;
-        }
-        .progress-text {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            color: #4b5b6b;
-            margin-top: 8px;
-        }
-        .output-area {
-            margin-top: 25px;
-            display: none;
-        }
-        .output-area.show {
-            display: block;
-        }
-        .output-area textarea {
-            width: 100%;
-            height: 260px;
-            padding: 16px 18px;
-            font-family: 'Consolas', 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.7;
-            border: 1.5px solid #d1dce8;
-            border-radius: 16px;
-            background: #fafcff;
-            resize: vertical;
-            color: #0f172a;
-            transition: 0.2s;
-        }
-        .output-area textarea:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
-        }
-        .output-toolbar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
+
         .badge {
             background: #dbeafe;
             color: #1e40af;
@@ -242,9 +255,6 @@
             border-radius: 30px;
             font-size: 13px;
             font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
         }
         .footer {
             margin-top: 28px;
@@ -259,11 +269,25 @@
             padding: 2px 10px;
             border-radius: 30px;
         }
-        @media (max-width: 500px) {
-            .container { padding: 24px 18px; }
-            h1 { font-size: 22px; flex-wrap: wrap; }
-            h1 small { margin-left: 0; }
-            .btn { padding: 12px 18px; font-size: 14px; }
+        .summary {
+            margin-top: 16px;
+            padding: 12px 18px;
+            background: #f0f4fe;
+            border-radius: 12px;
+            display: none;
+            font-size: 14px;
+            color: #1e293b;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .summary.show {
+            display: flex;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 20px 16px; }
+            h1 { font-size: 22px; }
+            .file-item { flex-wrap: wrap; }
+            .file-item .actions { width: 100%; justify-content: flex-end; }
         }
     </style>
 </head>
@@ -271,86 +295,68 @@
 
 <div class="container">
     <h1>
-        📄 PDF ➜ TXT
-        <small>瀏覽器端轉換</small>
+        📚 PDF ➜ TXT <small>批量轉換</small>
     </h1>
     <div class="subtitle">
-        ⚡ 檔案不上傳伺服器 · 純前端處理 · 支援中文
+        ⚡ 一次拖曳多個 PDF · 檔案不上傳 · 支援批次下載
     </div>
 
     <!-- 上傳區域 -->
     <div class="drop-zone" id="dropZone">
         <span class="icon">📤</span>
-        <p>拖曳 PDF 檔案至此，或點擊上傳</p>
-        <div class="hint">支援 .pdf ｜ 單檔最大 50MB</div>
-        <input type="file" id="fileInput" accept=".pdf">
+        <p>拖曳多個 PDF 檔案至此，或點擊上傳</p>
+        <div class="hint">支援批次上傳 ｜ 單檔最大 50MB</div>
+        <input type="file" id="fileInput" accept=".pdf" multiple>
     </div>
 
-    <!-- 檔案資訊 -->
-    <div class="file-info" id="fileInfo">
-        <span>📎</span>
-        <span class="name" id="fileName">未命名.pdf</span>
-        <span class="size" id="fileSize">0 KB</span>
-        <button class="btn" style="padding:4px 14px;background:#eef2f6;border-radius:30px;font-size:13px;" id="removeFileBtn">✕</button>
+    <!-- 檔案列表 -->
+    <div class="file-list" id="fileList"></div>
+
+    <!-- 摘要資訊 -->
+    <div class="summary" id="summary">
+        <span>📄 檔案總數：<strong id="totalCount">0</strong></span>
+        <span>✅ 已轉換：<strong id="convertedCount">0</strong></span>
+        <span>⏳ 等待中：<strong id="pendingCount">0</strong></span>
     </div>
 
     <!-- 操作按鈕 -->
     <div class="action-bar">
-        <button class="btn btn-primary" id="convertBtn" disabled>🔄 轉換為 TXT</button>
-        <button class="btn btn-outline" id="clearBtn">🗑️ 清空</button>
-    </div>
-
-    <!-- 進度條 -->
-    <div class="progress-area" id="progressArea">
-        <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progressFill"></div>
-        </div>
-        <div class="progress-text">
-            <span id="progressLabel">處理中...</span>
-            <span id="progressPercent">0%</span>
-        </div>
-    </div>
-
-    <!-- 輸出區域 -->
-    <div class="output-area" id="outputArea">
-        <div class="output-toolbar">
-            <span class="badge">📝 提取的文字</span>
-            <button class="btn" style="padding:4px 18px;background:#eef2f6;border-radius:30px;font-size:13px;margin-left:auto;" id="copyBtn">📋 複製</button>
-            <button class="btn btn-success" style="padding:4px 18px;border-radius:30px;font-size:13px;" id="downloadTxtBtn">⬇️ 下載 .txt</button>
-        </div>
-        <textarea id="outputText" readonly placeholder="轉換後的文字將顯示在這裡..."></textarea>
+        <button class="btn btn-primary" id="convertAllBtn">🔄 全部轉換</button>
+        <button class="btn btn-success" id="downloadAllBtn" disabled>📦 下載全部 (ZIP)</button>
+        <button class="btn btn-outline" id="clearAllBtn">🗑️ 清空全部</button>
     </div>
 
     <div class="footer">
-        <span>🔒 所有處理都在你的瀏覽器完成，檔案不會上傳</span>
+        <span>🔒 所有處理都在瀏覽器完成 · 檔案不會上傳</span>
+        <span style="margin-left:12px;">📦 ZIP 壓縮使用 JSZip</span>
     </div>
 </div>
 
+<!-- 引入 JSZip 用於打包下載 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
 <script>
     (function() {
-        // 設定 PDF.js worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
 
-        // DOM 元素
+        // DOM
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
-        const fileInfo = document.getElementById('fileInfo');
-        const fileName = document.getElementById('fileName');
-        const fileSize = document.getElementById('fileSize');
-        const removeFileBtn = document.getElementById('removeFileBtn');
-        const convertBtn = document.getElementById('convertBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const progressArea = document.getElementById('progressArea');
-        const progressFill = document.getElementById('progressFill');
-        const progressLabel = document.getElementById('progressLabel');
-        const progressPercent = document.getElementById('progressPercent');
-        const outputArea = document.getElementById('outputArea');
-        const outputText = document.getElementById('outputText');
-        const copyBtn = document.getElementById('copyBtn');
-        const downloadTxtBtn = document.getElementById('downloadTxtBtn');
+        const fileListEl = document.getElementById('fileList');
+        const summary = document.getElementById('summary');
+        const totalCount = document.getElementById('totalCount');
+        const convertedCount = document.getElementById('convertedCount');
+        const pendingCount = document.getElementById('pendingCount');
+        const convertAllBtn = document.getElementById('convertAllBtn');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
 
-        let currentFile = null;          // 儲存選中的 File 物件
-        let extractedText = '';          // 儲存最後提取的文字
+        // 檔案陣列
+        let files = []; // 每個元素: { id, file, name, size, status, text, progress }
+
+        let idCounter = 0;
+        let isConverting = false;
 
         // ---------- 輔助函數 ----------
         function formatSize(bytes) {
@@ -359,211 +365,261 @@
             return (bytes / 1048576).toFixed(1) + ' MB';
         }
 
-        function updateUIForFile(file) {
-            if (file) {
-                fileName.textContent = file.name;
-                fileSize.textContent = formatSize(file.size);
-                fileInfo.classList.add('show');
-                convertBtn.disabled = false;
+        function getStatusIcon(status) {
+            switch(status) {
+                case 'pending': return '⏳';
+                case 'converting': return '🔄';
+                case 'done': return '✅';
+                case 'error': return '❌';
+                default: return '📄';
+            }
+        }
+
+        function updateSummary() {
+            const total = files.length;
+            const done = files.filter(f => f.status === 'done').length;
+            const pending = files.filter(f => f.status === 'pending' || f.status === 'converting').length;
+            totalCount.textContent = total;
+            convertedCount.textContent = done;
+            pendingCount.textContent = pending;
+            summary.classList.toggle('show', total > 0);
+            downloadAllBtn.disabled = done === 0;
+            convertAllBtn.disabled = isConverting || pending === 0 || total === 0;
+        }
+
+        function renderFileList() {
+            if (files.length === 0) {
+                fileListEl.classList.remove('show');
+                fileListEl.innerHTML = '';
+                updateSummary();
+                return;
+            }
+            fileListEl.classList.add('show');
+            let html = '';
+            files.forEach((f, index) => {
+                const icon = getStatusIcon(f.status);
+                const progress = f.progress || 0;
+                html += `
+                    <div class="file-item" data-index="${index}">
+                        <span class="status">${icon}</span>
+                        <div class="info">
+                            <div class="name">${escapeHtml(f.name)}</div>
+                            <div class="meta">${formatSize(f.size)}</div>
+                            <div class="progress-mini">
+                                <div class="fill" style="width:${progress}%"></div>
+                            </div>
+                        </div>
+                        <div class="actions">
+                            ${f.status === 'done' ? `<button class="btn-sm success" onclick="window.downloadSingle(${index})">⬇️ 下載</button>` : ''}
+                            ${f.status === 'done' || f.status === 'error' ? `<button class="btn-sm" onclick="window.removeFile(${index})">✕</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            fileListEl.innerHTML = html;
+            updateSummary();
+        }
+
+        // 簡單防 XSS
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // 移除單一檔案
+        window.removeFile = function(index) {
+            if (isConverting) {
+                alert('轉換中，請稍後再移除');
+                return;
+            }
+            files.splice(index, 1);
+            renderFileList();
+        };
+
+        // 下載單一檔案
+        window.downloadSingle = function(index) {
+            const f = files[index];
+            if (!f || f.status !== 'done' || !f.text) return;
+            const blob = new Blob([f.text], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = f.name.replace(/\.pdf$/i, '') + '.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        };
+
+        // ---------- 新增檔案 ----------
+        function addFiles(fileList) {
+            if (isConverting) {
+                alert('轉換中，請稍後再新增檔案');
+                return;
+            }
+            let added = 0;
+            for (const file of fileList) {
+                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+                    continue;
+                }
+                if (file.size > 50 * 1024 * 1024) {
+                    alert(`「${file.name}」超過 50MB，已跳過`);
+                    continue;
+                }
+                files.push({
+                    id: idCounter++,
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    status: 'pending',
+                    text: '',
+                    progress: 0,
+                });
+                added++;
+            }
+            if (added > 0) {
+                renderFileList();
             } else {
-                fileInfo.classList.remove('show');
-                convertBtn.disabled = true;
+                alert('沒有可用的 PDF 檔案');
             }
         }
 
-        function resetAll(keepFile = false) {
-            // 清空輸出
-            outputArea.classList.remove('show');
-            outputText.value = '';
-            extractedText = '';
-            progressArea.classList.remove('show');
-            progressFill.style.width = '0%';
-            progressPercent.textContent = '0%';
-            if (!keepFile) {
-                currentFile = null;
-                fileInput.value = '';
-                updateUIForFile(null);
+        // ---------- 轉換單一 PDF ----------
+        async function convertOne(fileItem, index) {
+            try {
+                fileItem.status = 'converting';
+                fileItem.progress = 0;
+                renderFileList();
+
+                const arrayBuffer = await fileItem.file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const totalPages = pdf.numPages;
+                let fullText = '';
+
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    const pageText = content.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n\n';
+                    const percent = Math.round((i / totalPages) * 100);
+                    fileItem.progress = percent;
+                    // 每 5 頁更新一次 UI
+                    if (i % 5 === 0 || i === totalPages) {
+                        renderFileList();
+                    }
+                }
+
+                fileItem.text = fullText.trim() || '(此 PDF 無文字內容)';
+                fileItem.status = 'done';
+                fileItem.progress = 100;
+                renderFileList();
+                return true;
+            } catch (err) {
+                console.error(`轉換失敗: ${fileItem.name}`, err);
+                fileItem.status = 'error';
+                fileItem.text = '';
+                renderFileList();
+                return false;
             }
         }
 
-        // ---------- 讀取 PDF 並提取文字 ----------
-        async function extractTextFromPDF(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            const totalPages = pdf.numPages;
-            let fullText = '';
-
-            // 顯示進度
-            progressArea.classList.add('show');
-            progressFill.style.width = '0%';
-            progressPercent.textContent = '0%';
-            progressLabel.textContent = `讀取中 (0 / ${totalPages})`;
-
-            for (let i = 1; i <= totalPages; i++) {
-                const page = await pdf.getPage(i);
-                const content = await page.getTextContent();
-                const pageText = content.items.map(item => item.str).join(' ');
-                fullText += pageText + '\n\n';
-
-                // 更新進度
-                const percent = Math.round((i / totalPages) * 100);
-                progressFill.style.width = percent + '%';
-                progressPercent.textContent = percent + '%';
-                progressLabel.textContent = `讀取中 (${i} / ${totalPages})`;
-            }
-
-            progressLabel.textContent = '✅ 轉換完成！';
-            return fullText.trim();
-        }
-
-        // ---------- 主要轉換流程 ----------
-        async function handleConvert() {
-            if (!currentFile) {
-                alert('請先上傳 PDF 檔案');
+        // ---------- 全部轉換 ----------
+        async function convertAll() {
+            if (isConverting) return;
+            const pendingItems = files.filter(f => f.status === 'pending');
+            if (pendingItems.length === 0) {
+                alert('沒有待轉換的檔案');
                 return;
             }
+            isConverting = true;
+            convertAllBtn.disabled = true;
 
-            // 檢查檔案類型
-            if (currentFile.type !== 'application/pdf' && !currentFile.name.toLowerCase().endsWith('.pdf')) {
-                alert('請上傳有效的 PDF 檔案');
-                return;
+            for (let i = 0; i < files.length; i++) {
+                if (files[i].status === 'pending') {
+                    await convertOne(files[i], i);
+                }
             }
 
-            // 檢查檔案大小（限制 50MB）
-            if (currentFile.size > 50 * 1024 * 1024) {
-                alert('檔案過大，請上傳小於 50MB 的 PDF');
+            isConverting = false;
+            convertAllBtn.disabled = false;
+            renderFileList();
+        }
+
+        // ---------- 下載全部 (ZIP) ----------
+        async function downloadAllZip() {
+            const doneFiles = files.filter(f => f.status === 'done' && f.text);
+            if (doneFiles.length === 0) {
+                alert('沒有已轉換完成的檔案');
                 return;
             }
 
             try {
-                // 先清空之前的輸出，但保留檔案
-                outputArea.classList.remove('show');
-                outputText.value = '';
-                extractedText = '';
+                const zip = new JSZip();
+                doneFiles.forEach(f => {
+                    const baseName = f.name.replace(/\.pdf$/i, '');
+                    zip.file(baseName + '.txt', f.text);
+                });
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                saveAs(zipBlob, 'pdf轉txt_批次輸出.zip');
+            } catch (err) {
+                console.error('ZIP 打包失敗:', err);
+                alert('打包下載失敗：' + err.message);
+            }
+        }
 
-                // 執行轉換
-                const text = await extractTextFromPDF(currentFile);
-
-                if (!text || text.length === 0) {
-                    alert('⚠️ 未能從此 PDF 提取到文字。可能該 PDF 是掃描圖片檔（無文字層），或內容為空白。');
-                    progressArea.classList.remove('show');
-                    return;
-                }
-
-                // 顯示結果
-                extractedText = text;
-                outputText.value = text;
-                outputArea.classList.add('show');
-
-                // 完成進度
-                progressFill.style.width = '100%';
-                progressPercent.textContent = '100%';
-
-            } catch (error) {
-                console.error('轉換錯誤:', error);
-                alert('轉換失敗：' + error.message);
-                progressArea.classList.remove('show');
+        // ---------- 清空全部 ----------
+        function clearAll() {
+            if (isConverting) {
+                alert('轉換中，請稍後再清空');
+                return;
+            }
+            if (files.length === 0) return;
+            if (confirm('確定要清空所有檔案嗎？')) {
+                files = [];
+                renderFileList();
             }
         }
 
         // ---------- 事件綁定 ----------
 
-        // 點擊上傳區 -> 觸發檔案選擇
-        dropZone.addEventListener('click', (e) => {
-            if (e.target === fileInput) return;
-            fileInput.click();
+        // 點擊上傳
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // 檔案選擇
+        fileInput.addEventListener('change', (e) => {
+            if (fileInput.files.length > 0) {
+                addFiles(fileInput.files);
+                fileInput.value = '';
+            }
         });
 
-        // 拖曳事件
+        // 拖曳
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
         });
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
+        dropZone.addEventListener('dragleave', () => {
             dropZone.classList.remove('dragover');
         });
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const file = files[0];
-                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                    resetAll(false);
-                    currentFile = file;
-                    updateUIForFile(file);
-                } else {
-                    alert('請拖曳 PDF 檔案');
-                }
+            if (e.dataTransfer.files.length > 0) {
+                addFiles(e.dataTransfer.files);
             }
         });
 
-        // 檔案輸入變更
-        fileInput.addEventListener('change', (e) => {
-            if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-                    resetAll(false);
-                    currentFile = file;
-                    updateUIForFile(file);
-                } else {
-                    alert('請選擇 PDF 檔案');
-                    fileInput.value = '';
-                }
-            }
-        });
+        // 按鈕
+        convertAllBtn.addEventListener('click', convertAll);
+        downloadAllBtn.addEventListener('click', downloadAllZip);
+        clearAllBtn.addEventListener('click', clearAll);
 
-        // 移除檔案
-        removeFileBtn.addEventListener('click', () => {
-            resetAll(false);
-        });
-
-        // 清空按鈕（清空輸出與檔案）
-        clearBtn.addEventListener('click', () => {
-            resetAll(false);
-        });
-
-        // 轉換按鈕
-        convertBtn.addEventListener('click', handleConvert);
-
-        // 複製文字
-        copyBtn.addEventListener('click', async () => {
-            if (!extractedText) {
-                alert('沒有文字可複製');
-                return;
-            }
-            try {
-                await navigator.clipboard.writeText(extractedText);
-                alert('✅ 已複製到剪貼簿');
-            } catch {
-                // 降級方案
-                outputText.select();
-                document.execCommand('copy');
-                alert('✅ 已複製到剪貼簿');
-            }
-        });
-
-        // 下載 .txt
-        downloadTxtBtn.addEventListener('click', () => {
-            if (!extractedText) {
-                alert('沒有文字可下載');
-                return;
-            }
-            const blob = new Blob([extractedText], { type: 'text/plain;charset=utf-8' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            // 從原檔案名稱產生 .txt 檔名
-            let baseName = currentFile ? currentFile.name.replace(/\.pdf$/i, '') : 'output';
-            link.download = baseName + '.txt';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
-        });
+        // 將函數掛到 window 供內聯 onclick 使用
+        window.downloadSingle = downloadSingle;
+        window.removeFile = removeFile;
 
         // 初始化
-        resetAll(false);
+        renderFileList();
     })();
 </script>
 </body>
