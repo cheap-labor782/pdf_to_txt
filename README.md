@@ -30,7 +30,7 @@
 
 ## 🚀 線上試用
 
-👉 [點此試用](https://你的網址.github.io/pdf-to-txt/) *(請替換為你的 GitHub Pages 網址)*
+👉 [點此試用](https://cheap-labor782.github.io/pdf_to_txt/) 
 
 ---
 
