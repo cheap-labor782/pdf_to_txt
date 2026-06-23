@@ -20,14 +20,6 @@
 
 ---
 
-## 🖼️ 畫面預覽
-
-![截圖](screenshot.png)
-
-*(你可以放一張實際操作的截圖在這裡)*
-
----
-
 ## 🚀 線上試用
 
 👉 [點此試用](https://cheap-labor782.github.io/pdf_to_txt/) 
